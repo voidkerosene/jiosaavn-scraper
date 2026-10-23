@@ -35,8 +35,7 @@ type BrowseStationRaw struct {
 	Language        string `json:"language"`
 	ExplicitContent string `json:"explicit_content"`
 	MoreInfo        struct {
-		SubType  string `json:"sub_type"`
-		Language string `json:"language"`
+		SubType string `json:"sub_type"`
 	} `json:"more_info"`
 }
 
@@ -73,11 +72,9 @@ type BrowsePlaylistRaw struct {
 	Language        string         `json:"language"`
 	Year            StringOrNumber `json:"year"`
 	ExplicitContent string         `json:"explicit_content"`
-	ListCount       StringOrNumber `json:"list_count"`
 	MoreInfo        struct {
 		SongCount     StringOrNumber `json:"song_count"`
 		FollowerCount StringOrNumber `json:"follower_count"`
-		FirstName     string         `json:"firstname"`
 	} `json:"more_info"`
 }
 

@@ -139,10 +139,9 @@ type SearchItemRaw struct {
 	Image           string         `json:"image"`
 	Type            string         `json:"type"`
 	PermaURL        string         `json:"perma_url"`
-	Subtitle        string         `json:"subtitle"`
 	Description     string         `json:"description"`
-	Language        string         `json:"language"`
 	HeaderDesc      string         `json:"header_desc"`
+	Language        string         `json:"language"`
 	ExplicitContent string         `json:"explicit_content"`
 	Year            StringOrNumber `json:"year"`
 	PlayCount       StringOrNumber `json:"play_count"`
@@ -188,18 +187,13 @@ type PlaylistRaw struct {
 	ExplicitContent string         `json:"explicit_content"`
 	HeaderDesc      string         `json:"header_desc"`
 	List            SongList       `json:"list"`
-	ListCount       StringOrNumber `json:"list_count"`
 	MoreInfo        struct {
 		Artists []ArtistMapRaw `json:"artists"`
 	} `json:"more_info"`
 }
 
-type SongByLinkResponse struct {
-	Songs []SongRaw `json:"songs"`
-}
-
-// song.getDetails (by pids) wraps the list in a "songs" object;
-// song-by-link (webapi.get + type=song) returns the same shape.
+// song.getDetails (pids) and webapi.get type=song both return the
+// same {"songs": [...]} shape.
 type SongDetailsResponse struct {
 	Songs []SongRaw `json:"songs"`
 }
@@ -278,7 +272,6 @@ type TrendingItemRaw struct {
 	Language        string         `json:"language"`
 	Year            StringOrNumber `json:"year"`
 	ExplicitContent string         `json:"explicit_content"`
-	ListCount       StringOrNumber `json:"list_count"`
 	PlayCount       StringOrNumber `json:"play_count"`
 	MoreInfo        SongMoreInfo   `json:"more_info"`
 }

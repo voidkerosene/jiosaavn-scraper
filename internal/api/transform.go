@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"html"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -57,14 +58,6 @@ func boolPtr(b bool) *bool { return &b }
 
 func boolVal(s string) bool { return s == "1" }
 
-func sPtr(s string) *string {
-	if s == "" {
-		return nil
-	}
-	v := sanitize(s)
-	return &v
-}
-
 // jsonEmbed embeds an upstream JSON field (bio, languages, ...) into
 // the output. When upstream sends it twice-encoded ("[{...}]"), it
 // unwraps one level so the result is real JSON, not a quoted string.
@@ -115,32 +108,29 @@ func songModel(s SongRaw) SongModel {
 	// Only advertise 320kbps when the master truly has it; the
 	// replacement link would 404 otherwise.
 	if more.Has320 != "true" {
-		for i, l := range links {
-			if strings.HasSuffix(l.URL, "_320.mp4") {
-				links = append(links[:i], links[i+1:]...)
-				break
-			}
-		}
+		links = slices.DeleteFunc(links, func(l DownloadLink) bool {
+			return strings.HasSuffix(l.URL, "_320.mp4")
+		})
 	}
 	return SongModel{
 		ID:              s.ID,
 		Name:            sanitize(s.Title),
 		Type:            s.Type,
 		Year:            flexStrPtr(s.Year),
-		ReleaseDate:     sPtr(more.ReleaseDate),
+		ReleaseDate:     strPtr(more.ReleaseDate),
 		Duration:        intPtr(more.Duration),
-		Label:           sPtr(more.Label),
+		Label:           strPtr(more.Label),
 		ExplicitContent: boolVal(s.ExplicitContent),
 		PlayCount:       intPtr(s.PlayCount),
 		Language:        s.Language,
 		HasLyrics:       more.HasLyrics == "true",
-		LyricsID:        sPtr(more.LyricsID),
+		LyricsID:        strPtr(more.LyricsID),
 		URL:             s.PermaURL,
-		Copyright:       sPtr(more.Copyright),
+		Copyright:       strPtr(more.Copyright),
 		Album: SongAlbumModel{
-			ID:   sPtr(more.AlbumID),
-			Name: sPtr(more.Album),
-			URL:  sPtr(more.AlbumURL),
+			ID:   strPtr(more.AlbumID),
+			Name: strPtr(more.Album),
+			URL:  strPtr(more.AlbumURL),
 		},
 		Artists: SongArtistsModel{
 			Primary:  artistMapModels(more.ArtistMap.Primary),
@@ -168,7 +158,7 @@ func albumModel(a AlbumRaw) AlbumModel {
 	return AlbumModel{
 		ID:              a.ID,
 		Name:            sanitize(a.Title),
-		Description:     sPtr(a.HeaderDesc),
+		Description:     strPtr(a.HeaderDesc),
 		Year:            intPtr(a.Year),
 		Type:            a.Type,
 		PlayCount:       intPtr(a.PlayCount),
@@ -206,14 +196,13 @@ func playlistModel(p PlaylistRaw) PlaylistModel {
 	return PlaylistModel{
 		ID:              p.ID,
 		Name:            sanitize(p.Title),
-		Description:     sPtr(p.HeaderDesc),
+		Description:     strPtr(p.HeaderDesc),
 		Year:            intPtr(p.Year),
 		Type:            p.Type,
 		PlayCount:       intPtr(p.PlayCount),
 		Language:        p.Language,
 		ExplicitContent: boolVal(p.ExplicitContent),
 		URL:             p.PermaURL,
-		SongCount:       intPtr(p.ListCount),
 		Artists:         artists,
 		Image:           CreateImageLinks(p.Image),
 		Songs:           songs,
@@ -246,13 +235,13 @@ func artistModel(a ArtistDetailsResponse) ArtistModel {
 		similar = append(similar, SimilarArtist{
 			ID:             s.ID,
 			Name:           sanitize(s.Name),
-			URL:            sPtr(s.PermaURL),
+			URL:            strPtr(s.PermaURL),
 			Image:          CreateImageLinks(s.ImageURL),
 			Languages:      jsonEmbed(s.Languages),
-			Wiki:           sPtr(s.Wiki),
-			Dob:            sPtr(s.Dob),
-			Fb:             sPtr(s.Fb),
-			Twitter:        sPtr(s.Twitter),
+			Wiki:           strPtr(s.Wiki),
+			Dob:            strPtr(s.Dob),
+			Fb:             strPtr(s.Fb),
+			Twitter:        strPtr(s.Twitter),
 			IsRadioPresent: s.IsRadioPresent,
 			Type:           s.Type,
 			DominantType:   s.DominantType,
@@ -268,15 +257,15 @@ func artistModel(a ArtistDetailsResponse) ArtistModel {
 		Type:               a.Type,
 		Image:              CreateImageLinks(a.Image),
 		FollowerCount:      intPtr(a.FollowerCount),
-		FanCount:           sPtr(a.FanCount),
+		FanCount:           strPtr(a.FanCount),
 		IsVerified:         boolPtr(a.IsVerified),
-		DominantLanguage:   sPtr(a.DominantLanguage),
-		DominantType:       sPtr(a.DominantType),
+		DominantLanguage:   strPtr(a.DominantLanguage),
+		DominantType:       strPtr(a.DominantType),
 		Bio:                jsonEmbed(a.Bio),
-		Dob:                sPtr(a.Dob),
-		Fb:                 sPtr(a.Fb),
-		Twitter:            sPtr(a.Twitter),
-		Wiki:               sPtr(a.Wiki),
+		Dob:                strPtr(a.Dob),
+		Fb:                 strPtr(a.Fb),
+		Twitter:            strPtr(a.Twitter),
+		Wiki:               strPtr(a.Wiki),
 		AvailableLanguages: a.AvailableLanguages,
 		IsRadioPresent:     a.IsRadioPresent,
 		TopSongs:           topSongs,
@@ -303,7 +292,7 @@ func trendingItemModel(t TrendingItemRaw) TrendingItem {
 		Singers:         flexStrPtr(more.Singers),
 	}
 	if more.Album != "" {
-		item.Album = sPtr(more.Album)
+		item.Album = strPtr(more.Album)
 	}
 	if len(more.ArtistMap.All) > 0 {
 		item.Artists = artistMapModels(more.ArtistMap.All)

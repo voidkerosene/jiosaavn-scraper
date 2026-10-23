@@ -58,8 +58,11 @@ func get(ctx context.Context, path string, params url.Values) ([]byte, error) {
 	if resp.StatusCode == http.StatusNotFound {
 		return nil, errNotFound
 	}
+	// ponytail: 429 is deliberately NOT shared with waiters as a
+	// cacheable failure; a plain error keeps it outside the 5-min cache
+	// so a hot 429 storm cannot get stuck in cache.
 	if resp.StatusCode == http.StatusTooManyRequests {
-		return nil, fmt.Errorf("lrclib: rate limited, try again later (ponytail: backoff-on-429 left uncached so a hot 429 storm can't embed in the 5-min cache)")
+		return nil, fmt.Errorf("lrclib: rate limited, try again later")
 	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("lrclib %s: status %d", path, resp.StatusCode)

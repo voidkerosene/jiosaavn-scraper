@@ -191,7 +191,7 @@ func playlistish(items []BrowsePlaylistRaw) []BrowsePlaylist {
 			ID:              p.ID,
 			Name:            sanitize(p.Title),
 			Subtitle:        sanitize(p.Subtitle),
-			Description:     sPtr(p.HeaderDesc),
+			Description:     strPtr(p.HeaderDesc),
 			URL:             p.PermaURL,
 			Image:           CreateImageLinks(p.Image),
 			Language:        p.Language,

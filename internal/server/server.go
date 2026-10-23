@@ -5,7 +5,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 )
@@ -60,7 +59,7 @@ func routes(c *cache) *http.ServeMux {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusNotFound)
 		message := "route not found, all endpoints are documented at GET /"
-		if _, err := url.Parse(r.URL.Path); err == nil && r.URL.Path == "/api" {
+		if r.URL.Path == "/api" {
 			message = "api root has no content, all endpoints are documented at GET /"
 		}
 		w.Write(render(http.StatusNotFound, errorPayload{Success: false, Message: message}))

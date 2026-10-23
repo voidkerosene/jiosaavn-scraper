@@ -21,7 +21,6 @@ var ErrNotFound = &HTTPError{Code: 404, Message: "not found"}
 
 func errBadInput(msg string) error { return &HTTPError{Code: 400, Message: msg} }
 func errNotFound(msg string) error { return &HTTPError{Code: 404, Message: msg} }
-func errInternal(msg string) error { return &HTTPError{Code: 500, Message: msg} }
 
 // clampLimit keeps pagination inside sane bounds; upstream fails hard
 // on huge page numbers or zero limits.
@@ -81,13 +80,8 @@ func SearchSongs(ctx context.Context, query string, page, limit int) (SearchSong
 	if err != nil {
 		return SearchSongsResponse{}, err
 	}
-	seen := map[string]bool{}
 	results := make([]SongModel, 0, len(data.Results))
 	for _, raw := range data.Results {
-		if seen[raw.ID] {
-			continue
-		}
-		seen[raw.ID] = true
 		results = append(results, songModel(SongRaw{
 			ID: raw.ID, Title: raw.Title, Image: raw.Image, Type: raw.Type,
 			PermaURL: raw.PermaURL, Language: raw.Language, Year: raw.Year,
@@ -103,13 +97,8 @@ func SearchAlbums(ctx context.Context, query string, page, limit int) (SearchAlb
 	if err != nil {
 		return SearchAlbumsResponse{}, err
 	}
-	seen := map[string]bool{}
 	results := make([]AlbumModel, 0, len(data.Results))
 	for _, raw := range data.Results {
-		if seen[raw.ID] {
-			continue
-		}
-		seen[raw.ID] = true
 		results = append(results, albumModel(AlbumRaw{
 			ID: raw.ID, Title: raw.Title, Image: raw.Image, Type: raw.Type,
 			PermaURL: raw.PermaURL, Language: raw.Language, Year: raw.Year,
@@ -129,13 +118,8 @@ func SearchArtists(ctx context.Context, query string, page, limit int) (SearchAr
 	if err != nil {
 		return SearchArtistsResponse{}, err
 	}
-	seen := map[string]bool{}
 	results := make([]ArtistMapModel, 0, len(data.Results))
 	for _, raw := range data.Results {
-		if seen[raw.ID] {
-			continue
-		}
-		seen[raw.ID] = true
 		results = append(results, artistMapModel(ArtistMapRaw{
 			ID: raw.ID, Name: raw.Title, Image: raw.Image, Type: raw.Type,
 			PermaURL: raw.PermaURL,
@@ -149,13 +133,8 @@ func SearchPlaylists(ctx context.Context, query string, page, limit int) (Search
 	if err != nil {
 		return SearchPlaylistsResponse{}, err
 	}
-	seen := map[string]bool{}
 	results := make([]SearchPlaylistItem, 0, len(data.Results))
 	for _, raw := range data.Results {
-		if seen[raw.ID] {
-			continue
-		}
-		seen[raw.ID] = true
 		results = append(results, SearchPlaylistItem{
 			ID:              raw.ID,
 			Name:            sanitize(raw.Title),
@@ -229,13 +208,13 @@ func SearchAll(ctx context.Context, query string) (GlobalSearchResponse, error) 
 				ID:             d.ID,
 				Title:          sanitize(d.Title),
 				Image:          CreateImageLinks(d.Image),
-				Album:          sPtr(d.MoreInfo.Album),
-				URL:            sPtr(d.PermaURL),
+				Album:          strPtr(d.MoreInfo.Album),
+				URL:            strPtr(d.PermaURL),
 				Type:           d.Type,
-				Description:    sPtr(d.Description),
+				Description:    strPtr(d.Description),
 				PrimaryArtists: flexStrPtr(d.MoreInfo.PrimaryArtists),
 				Singers:        flexStrPtr(d.MoreInfo.Singers),
-				Language:       sPtr(d.Language),
+				Language:       strPtr(d.Language),
 				Artist:         flexStrPtr(d.MoreInfo.Music),
 				Year:           flexStrPtr(d.Year),
 			})
@@ -278,7 +257,7 @@ func GetSong(ctx context.Context, ids, link string) ([]SongModel, error) {
 		if err != nil {
 			return nil, err
 		}
-		var data SongByLinkResponse
+		var data SongDetailsResponse
 		if err := fetch(ctx, callWebAPI, map[string]string{
 			"token": token, "type": "song",
 		}, &data); err != nil {
@@ -436,7 +415,8 @@ func GetPlaylist(ctx context.Context, id, link string, page, limit int) (Playlis
 	playlist := playlistModel(data)
 	// Match the original behavior: songCount reflects the actually
 	// returned (paginated) songs, not the full list size.
-	playlist.SongCount = intPtr(StringOrNumber(strconv.Itoa(len(playlist.Songs))))
+	n := len(playlist.Songs)
+	playlist.SongCount = &n
 	return playlist, nil
 }
 
