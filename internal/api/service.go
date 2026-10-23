@@ -334,7 +334,7 @@ func GetSongSuggestions(ctx context.Context, songID string, limit int) ([]SongMo
 			return nil, errNotFound("no suggestions found for the given song")
 		}
 		if msg, hasErr := raw["error"]; hasErr {
-			var _ string // error key present: retry
+			// error key present: upstream radio flakiness, retry once
 			_ = msg
 			continue
 		}

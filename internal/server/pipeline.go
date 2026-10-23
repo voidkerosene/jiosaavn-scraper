@@ -64,10 +64,29 @@ func wantGzip(r *http.Request, body []byte) bool {
 	return len(body) >= minGzipSize && strings.Contains(r.Header.Get("Accept-Encoding"), "gzip")
 }
 
-// kindedPipeline is the whole request pipeline for API endpoints:
+// setCommonHeaders applies the response policy shared by every
+// endpoint and CORS preflights.
+func setCommonHeaders(w http.ResponseWriter) {
+	h := w.Header()
+	h.Set("Content-Type", "application/json; charset=utf-8")
+	h.Set("X-Content-Type-Options", "nosniff")
+	h.Set("Access-Control-Allow-Origin", "*")
+	h.Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	h.Set("Access-Control-Allow-Headers", "*")
+}
+
+// pipeline is the whole request pipeline for API endpoints:
 // flight-shared cache -> handler -> JSON render -> gzip -> write -> log.
 func pipeline(fn kinded, c *cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			// CORS preflight: advertise the shared policy with an
+			// empty 204 instead of falling through to the JSON 404.
+			setCommonHeaders(w)
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
 		start := time.Now()
 		var entry cacheEntry
 		var err error
@@ -93,12 +112,9 @@ func pipeline(fn kinded, c *cache) http.HandlerFunc {
 		}
 
 		body := entry.body
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "*")
+		setCommonHeaders(w)
 		w.Header().Set("X-Cache", cacheHeader(state, status))
+		// gzip decision must happen before WriteHeader flushes headers.
 		gzipIt := wantGzip(r, body)
 		if gzipIt {
 			w.Header().Set("Content-Encoding", "gzip")
@@ -128,8 +144,7 @@ func cacheHeader(state string, status int) string {
 func direct(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		setCommonHeaders(w)
 		w.WriteHeader(http.StatusOK)
 		next(w, r)
 		logRequest(r, http.StatusOK, 0, "docs", time.Since(start))

@@ -152,20 +152,33 @@ func FeaturedPlaylists(ctx context.Context, language string, page, limit int) (S
 }
 
 // songCountFromSubtitle extracts the count from subtitles like
-// "23 Songs".
+// "23 Songs" or "1.2K Songs" (upstream abbreviates large counts).
 func songCountFromSubtitle(sub string) *int {
 	sub = strings.ToLower(strings.TrimSpace(sub))
-	if i := strings.IndexAny(sub, "0123456789"); i >= 0 {
-		end := i
-		for end < len(sub) && ((sub[end] >= '0' && sub[end] <= '9') || sub[end] == '.') {
-			end++
-		}
-		if f, err := strconv.ParseFloat(sub[i:end], 64); err == nil {
-			v := int(f)
-			return &v
+	i := strings.IndexAny(sub, "0123456789")
+	if i < 0 {
+		return nil
+	}
+	end := i
+	for end < len(sub) && ((sub[end] >= '0' && sub[end] <= '9') || sub[end] == '.') {
+		end++
+	}
+	f, err := strconv.ParseFloat(sub[i:end], 64)
+	if err != nil {
+		return nil
+	}
+	if end < len(sub) {
+		switch sub[end] {
+		case 'k':
+			f *= 1_000
+		case 'm':
+			f *= 1_000_000
+		case 'b':
+			f *= 1_000_000_000
 		}
 	}
-	return nil
+	v := int(f)
+	return &v
 }
 
 func playlistish(items []BrowsePlaylistRaw) []BrowsePlaylist {

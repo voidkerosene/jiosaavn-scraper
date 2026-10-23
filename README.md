@@ -43,7 +43,7 @@ Configuration variables (all optional, each documented in `.env.example`):
 | Variable           | Default | Description                          |
 | ------------------ | ------- | ------------------------------------ |
 | `PORT`             | `3000`  | HTTP listen port                     |
-| `LOG_FILE`         | unset   | additional log file; stdout always  |
+| `LOG_FILE`         | unset   | additional log file; requests are always also logged to stdout |
 | `CACHE_TTL_MINUTES`| `5`     | response cache lifetime              |
 | `CACHE_MAX_SIZE`   | `5000`  | cached response cap before eviction  |
 

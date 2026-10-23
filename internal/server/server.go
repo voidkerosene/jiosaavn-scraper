@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 )
 
 // routes registers every endpoint. All service handlers match the same
@@ -48,8 +49,13 @@ func routes(c *cache) *http.ServeMux {
 	mux.HandleFunc("GET /api/lyrics", pipeline(lyricsQuery, c))
 	mux.HandleFunc("GET /api/songs/{id}/lyrics", pipeline(songLyrics, c))
 
-	// JSON 404 for anything else.
+	// JSON 404 for anything else; OPTIONS answers the CORS preflight.
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			setCommonHeaders(w)
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusNotFound)
@@ -67,8 +73,15 @@ func routes(c *cache) *http.ServeMux {
 func Serve(cfg Config) error {
 	c := newCache(cfg.CacheTTL, cfg.CacheMaxSize)
 
-	// Log sink: stdout always, plus LOG_FILE when configured.
+	// Log sink: stdout always, plus LOG_FILE when configured. The
+	// parent directory is created so a fresh checkout with a copied
+	// .env (logs/server.log) does not fail to start.
 	if cfg.LogFile != "" {
+		if dir := filepath.Dir(cfg.LogFile); dir != "." {
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				return fmt.Errorf("log dir %s: %w", dir, err)
+			}
+		}
 		f, err := os.OpenFile(cfg.LogFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644)
 		if err != nil {
 			return fmt.Errorf("log file %s: %w", cfg.LogFile, err)

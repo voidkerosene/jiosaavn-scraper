@@ -75,3 +75,20 @@ func TestLastSegment(t *testing.T) {
 		t.Fatal("expected error for invalid link")
 	}
 }
+
+func TestSongCountFromSubtitle(t *testing.T) {
+	i := func(n int) *int { return &n }
+	cases := map[string]*int{
+		"23 Songs":     i(23),
+		"1.2K Songs":   i(1200),
+		"500K songs":   i(500000),
+		"2.5M Songs":   i(2500000),
+		"no number":    nil,
+		"X23 Playlist": i(23), // number not only at the start
+	}
+	for in, want := range cases {
+		if got := songCountFromSubtitle(in); (want == nil) != (got == nil) || (want != nil && *got != *want) {
+			t.Fatalf("songCountFromSubtitle(%q) = %v, want %v", in, got, want)
+		}
+	}
+}

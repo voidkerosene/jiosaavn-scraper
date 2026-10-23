@@ -249,9 +249,9 @@ func getDocs() docsResponse {
 		Upstream:    "https://www.jiosaavn.com/api.php (+ https://lrclib.net for lyrics)",
 		Notes: []string{
 			"All endpoints live under /api and are GET-only.",
-			"Responses are cached for 5 minutes per full query string and gzip-compressed when requested; concurrent identical requests share one upstream fetch.",
+			"Responses are cached for the configured lifetime (default 5 minutes) per full query string and gzip-compressed when requested; concurrent identical requests share one upstream fetch.",
 			"Errors return {\"success\": false, \"message\": \"...\"} with a matching HTTP status.",
-			"X-Cache header: hit / miss / bypass (errors are never cached).",
+			"X-Cache header: hit / shared / miss for success, bypass for errors (errors are never cached).",
 			"downloadUrl arrays contain one entry per available bitrate (12/48/96/160/320 kbps).",
 		},
 		Endpoints: docs,

@@ -15,7 +15,7 @@ import (
 // binary runs with no configuration at all.
 type Config struct {
 	Addr         string
-	LogFile      string // optional additional log destination; stdout is always writen to
+	LogFile      string // optional additional log destination; stdout is always written to
 	CacheTTL     time.Duration
 	CacheMaxSize int
 }

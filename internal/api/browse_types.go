@@ -172,21 +172,6 @@ type BrowseResponse struct {
 	TopShows     []Shows          `json:"topShows"`
 }
 
-// FeaturedPlaylist is one row of playlist.getFeaturedPlaylists (the
-// per-language "top hits / curated" feed) — this call is language-aware
-// upstream, unlike content.getCharts/getBrowseModules which some regions
-// lock to their default language.
-type FeaturedPlaylist struct {
-	ID              string         `json:"id"`
-	Name            string         `json:"name"`
-	Type            string         `json:"type"`
-	Image           []DownloadLink `json:"image"`
-	URL             string         `json:"url"`
-	SongCount       *int           `json:"songCount"`
-	FollowerCount   *int           `json:"followerCount"`
-	ExplicitContent bool           `json:"explicitContent"`
-}
-
 type featuredPlaylistsRaw []struct {
 	ID       string `json:"id"`
 	Title    string `json:"title"`
