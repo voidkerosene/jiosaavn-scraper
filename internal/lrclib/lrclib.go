@@ -1,5 +1,5 @@
 // Package lrclib talks to the free LRCLib lyrics API
-// (https://lrclib.net — no key required, fair-use rate limits).
+// (https://lrclib.net no key required, fair-use rate limits).
 // User-Agent etiquette per their docs, and rely on server-side caching
 // to stay friendly to the public API.
 package lrclib

@@ -75,7 +75,7 @@ var docs = []apiDoc{
 	{
 		Group: "Discover", Path: "/api/top-playlists", Method: "GET",
 		Summary:     "Top/featured playlists for a language",
-		Description: "Language-aware curated feed (dedicated upstream call), with follower counts and types — the per-language rail behind the JioSaavn app's home page.",
+		Description: "Language-aware curated feed (dedicated upstream call), with follower counts and types the per-language rail behind the JioSaavn app's home page.",
 		Params: append([]apiDocParam{
 			param("page", "number", "Page number (0-based)", false, "0"),
 			param("limit", "number", "Results per page (max 250)", false, "10"),

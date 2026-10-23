@@ -10,7 +10,7 @@ import (
 )
 
 // Each handler pulls its params off the request and delegates to the
-// api service. No ResponseWriter access — the pipeline handles the rest.
+// api service. No ResponseWriter access the pipeline handles the rest.
 
 func q(req *http.Request, key string) string { return req.URL.Query().Get(key) }
 

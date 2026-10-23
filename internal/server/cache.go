@@ -35,7 +35,7 @@ func newCache(ttl time.Duration, maxSize int) *cache {
 }
 
 // flight is a shared in-flight computation. Waiters block on done and
-// then read e/err — writes happen-before close(done), so no extra
+// then read e/err writes happen-before close(done), so no extra
 // synchronization is needed (Go memory model).
 type flight struct {
 	done chan struct{}
@@ -44,7 +44,7 @@ type flight struct {
 }
 
 // cacheKey includes the full URI, so /trending?type=album vs
-// ?type=song and per-language variants never collide — keying by
+// ?type=song and per-language variants never collide keying by
 // endpoint alone is exactly what made the original's trending return
 // the same payload for every request.
 func cacheKey(req *http.Request) string {
