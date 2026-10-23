@@ -1,0 +1,17 @@
+# Binaries
+bin/
+jiosaavn-api
+*.exe
+
+# Local environment and secrets
+.env
+logs/
+
+# Go work artifacts
+*.test
+*.out
+coverage.*
+
+# System files
+.DS_Store
+Thumbs.db
